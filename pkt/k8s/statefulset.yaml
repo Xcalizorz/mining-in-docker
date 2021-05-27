@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pkt-miner
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: pkt-miner
+  serviceName: "pkt-miner"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pkt-miner
+    spec:
+      terminationGracePeriodSeconds: 10
+      initContainers:
+        - name: set-permissions
+          image: alpine:3.13.5
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /pkt/.pktwallet && cd /pkt/.pktwallet && pwd
+              chown -R 100:101 /pkt
+          volumeMounts:
+            - name: pkt-storage
+              mountPath: /pkt
+      containers:
+        - name: balance-checker
+          image: xcalizorz/pkt-miner:v0.1
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              while true; do sleep 600; pktctl --wallet getbalance; done
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 120m
+              memory: 128Mi
+          volumeMounts:
+            - name: pkt-storage
+              mountPath: /pkt
+        - name: pktwallet
+          image: xcalizorz/pkt-miner:v0.1
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              [ -z "$WALLET_PUBLIC_PASSPHRASE" ] && pktwallet || pktwallet --walletpass="${WALLET_PUBLIC_PASSPHRASE}"
+          resources:
+            requests:
+              cpu: 32m
+              memory: 64Mi
+            limits:
+              cpu: 120m
+              memory: 1024Mi
+          volumeMounts:
+            - name: pkt-storage
+              mountPath: /pkt
+          env:
+            - name: WALLET_PUBLIC_PASSPHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: pkt-secrets
+                  key: wallet-public-passphrase
+  volumeClaimTemplates:
+    - metadata:
+        name: pkt-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 120Gi

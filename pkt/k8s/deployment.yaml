@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pkt-miner
+  namespace: packetcrypt
+  labels:
+    app: pkt-miner
+spec:
+  selector:
+    matchLabels:
+      app: pkt-miner
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pkt-miner
+    spec:
+      containers:
+        - name: pkt-miner
+          image: xcalizorz/pkt-miner:v0.1
+          command:
+            - sh
+            - -c
+            - |
+              packetcrypt ann -p ${WALLET_ADDRESS} ${POOL_ADDRESS}
+          resources:
+            requests:
+              cpu: "3"
+              memory: 128Mi
+            limits:
+              cpu: "6"
+              memory: 512Mi
+          env:
+            - name: WALLET_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: pkt-secrets
+                  key: wallet
+            - name: POOL_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: pkt-secrets
+                  key: pool
+      restartPolicy: Always
