@@ -7,11 +7,11 @@ If you have not created a wallet, you can create one in the next step.
 
 ### pktwallet output
 
-![pktwallet](../img/logs_1.png)
+![pktwallet](https://github.com/Xcalizorz/mining-in-docker/blob/main/img/logs_1.png?raw=true)
 
 ### Balance checker output
 
-![balance-checker](../img/logs_2.png)
+![balance-checker](https://github.com/Xcalizorz/mining-in-docker/blob/main/img/logs_2.png?raw=true)
 
 ## Creating a wallet
 
