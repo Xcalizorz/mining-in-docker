@@ -32,7 +32,7 @@ jobs:
             docker-compose --file $DOCKERFILE_DIR/docker-compose.test.yml build
             docker-compose --file $DOCKERFILE_DIR/docker-compose.test.yml run sut
           else
-            docker build $DOCKERFILE_DIR/ --file $DOCKERFILE_DIR/Dockerfile
+            docker build $DOCKERFILE_DIR/ --file $DOCKERFILE_DIR/Dockerfile --cache-from docker.pkg.github.com/xcalizorz/mining-in-docker/pkt-miner:latest
           fi
 
   # Push image to GitHub Packages.
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build image
-        run: docker build $DOCKERFILE_DIR/ --file $DOCKERFILE_DIR/Dockerfile --tag $IMAGE_NAME
+        run: docker build $DOCKERFILE_DIR/ --file $DOCKERFILE_DIR/Dockerfile --tag $IMAGE_NAME --cache-from docker.pkg.github.com/xcalizorz/mining-in-docker/pkt-miner:latest
 
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
